@@ -5,6 +5,7 @@ import 'dart:math';
 import './components/transaction_form.dart';
 import './components/transaction_list.dart';
 import './models/transaction.dart';
+import 'components/chart.dart';
 
 main() => runApp(ExpensesApp());
 
@@ -19,11 +20,10 @@ class ExpensesApp extends StatelessWidget {
           fontFamily: "Quicksand",
           appBarTheme: AppBarTheme(
               textTheme: ThemeData.light().textTheme.copyWith(
-                      headline6: TextStyle(
-                    fontFamily: "OpenSans",
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold
-                  )))),
+                  headline6: TextStyle(
+                      fontFamily: "OpenSans",
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)))),
     );
   }
 }
@@ -34,27 +34,41 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Transaction>_transactions = [
+  final List<Transaction> _transactions = [
+    // Transaction(
+    //   id: "t0",
+    //   title: "Conta antiga",
+    //   value: 310.76,
+    //   date: DateTime.now().subtract(Duration(days: 33)),
+    // ),
     // Transaction(
     //   id: "t1",
     //   title: "Novo tênis de corrida",
     //   value: 310.76,
-    //   date: DateTime.now(),
+    //   date: DateTime.now().subtract(Duration(days: 3)),
     // ),
     // Transaction(
     //   id: "t2",
     //   title: "Conta de luz",
     //   value: 211.30,
-    //   date: DateTime.now(),
+    //   date: DateTime.now().subtract(Duration(days: 4)),
     // ),
   ];
 
-  _addTransaction(String title, double value) {
+  List<Transaction> get _recentTransactions {
+    return _transactions.where((tr) {
+      return tr.date.isAfter(DateTime.now().subtract(
+        Duration(days: 7),
+      ));
+    }).toList();
+  }
+
+  _addTransaction(String title, double value, DateTime date) {
     final newTransaction = Transaction(
       id: Random().nextDouble().toString(),
       title: title,
       value: value,
-      date: DateTime.now(),
+      date: date,
     );
 
     setState(() {
@@ -62,6 +76,14 @@ class _HomePageState extends State<HomePage> {
     });
 
     Navigator.of(context).pop();
+  }
+
+  _removeTransaction(String id) {
+    setState(() {
+      _transactions.removeWhere((tr) {
+        return tr.id == id;
+      });
+    });
   }
 
   _openTransactionFormModal(BuildContext context) {
@@ -90,13 +112,8 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-              child: Card(
-                child: Text("Grafico"),
-                elevation: 5,
-              ),
-            ),
-            TransactionList(_transactions)
+            Chart(_recentTransactions),
+            TransactionList(_transactions, _removeTransaction),
           ],
         ),
       ),
